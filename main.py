@@ -1,6 +1,28 @@
 import telebot
 from telebot import types, apihelper
 import os
+from flask import Flask, request
+
+# Инициализация Flask приложения
+app = Flask(__name__)
+
+# Вебхук маршрут для Telegram
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    if request.headers.get('content-type') == 'application/json':
+        json_string = request.get_data().decode('utf-8')
+        update = telebot.types.Update.de_json(json_string)
+        bot.process_new_updates([update])
+        return ''
+    return ''
+
+# Установка вебхука при запуске
+@app.route('/')
+def set_webhook():
+    bot.remove_webhook()
+    # Замени YOUR_APP_URL на реальный URL твоего приложения
+    bot.set_webhook(url='https://YOUR_APP_URL.herokuapp.com/webhook')
+    return 'Webhook set!'
 
 os.environ['NO_PROXY'] = '*'
 
@@ -759,4 +781,7 @@ def callback_inline(call):
         bot.send_photo(call.message.chat.id, photo=open('images/image14.png', 'rb'))
         bot.send_message(call.message.chat.id, stahovanievputehestvii_text, parse_mode='HTML', reply_markup=markup)
 
+
 bot.polling(none_stop=True, interval=0, timeout=120)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
